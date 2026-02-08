@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate, useLocation } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -95,20 +96,57 @@ export default function Index() {
   const [isProcessingHash, setIsProcessingHash] = useState(false);
 
   useEffect(() => {
-    // Check if we have an auth hash but user is not yet loaded or confirmed
-    if (location.hash && (location.hash.includes("access_token") || location.hash.includes("type=recovery"))) {
-      console.log("Index: Auth hash detected, waiting for session processing...");
-      setIsProcessingHash(true);
+    const handleAuthHash = async () => {
+      // Direct window location check to bypass any router lag
+      const hash = window.location.hash;
+      console.log("Index: Checking hash:", hash);
 
-      // Safety timeout in case Supabase doesn't process it
-      const timer = setTimeout(() => {
-        console.warn("Index: Auth hash processing timeout");
+      if (hash && hash.includes("access_token")) {
+        console.log("Index: Auth token detected, attempting manual session set...");
+        setIsProcessingHash(true);
+
+        try {
+          // Parse tokens manually
+          const params = new URLSearchParams(hash.substring(1)); // remove #
+          const accessToken = params.get("access_token");
+          const refreshToken = params.get("refresh_token");
+
+          if (accessToken) {
+            console.log("Index: Found access token, setting session...");
+            const { data, error } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken || "",
+            });
+
+            if (error) {
+              console.error("Index: Error setting session:", error);
+              // Fallback: let internal supabase logic try
+            } else if (data.session) {
+              console.log("Index: Session successfully set, redirecting...");
+              // Force reload/redirect to dashboard
+              // We use window.location to ensure a clean state
+              window.location.href = "/dashboard";
+              return;
+            }
+          }
+        } catch (e) {
+          console.error("Index: Manual hash parsing failed", e);
+        }
+      }
+    };
+
+    handleAuthHash();
+
+    // Fallback timeout
+    const timer = setTimeout(() => {
+      if (isProcessingHash) {
+        console.warn("Index: Auth processing timed out, resetting UI");
         setIsProcessingHash(false);
-      }, 5000);
+      }
+    }, 4000);
 
-      return () => clearTimeout(timer);
-    }
-  }, [location.hash]);
+    return () => clearTimeout(timer);
+  }, []); // Run once on mount
 
   // Combined loading state: either global auth loading OR we are processing a hash on this page
   if (loading || isProcessingHash) {
