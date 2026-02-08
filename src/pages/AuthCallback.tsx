@@ -7,16 +7,13 @@ export default function AuthCallback() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // The supabase client automatically handles the hash parsing 
-        // when it initializes. We just need to wait for the session.
-
         const checkSession = async () => {
             try {
                 const { data: { session }, error } = await supabase.auth.getSession();
 
                 if (error) {
                     console.error("Auth callback error:", error);
-                    navigate("/login?error=auth_callback_failed");
+                    navigate("/login?error=auth_callback_failed&details=" + encodeURIComponent(error.message));
                     return;
                 }
 
@@ -24,19 +21,18 @@ export default function AuthCallback() {
                     console.log("Session found, redirecting to dashboard");
                     navigate("/dashboard");
                 } else {
-                    // Give it a moment, sometimes the session isn't immediately available
-                    // after the code exchange
-                    const { data: { session: newSession } } = await supabase.auth.getSession();
+                    // Give it a moment - sometimes the session isn't immediately available
+                    const { data: { session: newSession }, error: newError } = await supabase.auth.getSession();
                     if (newSession) {
                         navigate("/dashboard");
                     } else {
-                        console.warn("No session found after callback");
-                        navigate("/login");
+                        console.warn("No session found after callback", newError);
+                        navigate("/login?error=no_session");
                     }
                 }
-            } catch (e) {
+            } catch (e: any) {
                 console.error("Unexpected error in auth callback:", e);
-                navigate("/login?error=unexpected");
+                navigate("/login?error=unexpected&details=" + encodeURIComponent(e.message || "Unknown error"));
             }
         };
 
