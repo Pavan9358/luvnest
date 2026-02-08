@@ -9,11 +9,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { HeartIcon, FloatingHearts } from "@/components/ui/HeartIcon";
 import { ShareDialog } from "@/components/sharing/ShareDialog";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Plus, 
-  Heart, 
-  Eye, 
-  Settings, 
+import {
+  Plus,
+  Heart,
+  Eye,
+  Settings,
   Wallet,
   Sparkles,
   Clock,
@@ -47,43 +47,39 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const { data: pagesData } = await supabase
+          .from("love_pages")
+          .select("*")
+          .eq("user_id", user!.id)
+          .order("created_at", { ascending: false });
+
+        if (pagesData) {
+          setPages(pagesData);
+        }
+
+        const { data: walletData } = await supabase
+          .from("wallets")
+          .select("balance, currency, plan_type, templates_used")
+          .eq("user_id", user!.id)
+          .single();
+
+        if (walletData) {
+          setWallet(walletData as WalletData);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (user) {
       fetchData();
     }
   }, [user]);
-
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const { data: pagesData } = await supabase
-        .from("love_pages")
-        .select("*")
-        .eq("user_id", user!.id)
-        .order("created_at", { ascending: false });
-
-      if (pagesData) {
-        setPages(pagesData);
-      }
-
-      const { data: walletData } = await supabase
-        .from("wallets")
-        .select("balance, currency, plan_type, templates_used")
-        .eq("user_id", user!.id)
-        .single();
-
-      if (walletData) {
-        setWallet(walletData as WalletData);
-      }
-
-      if (walletData) {
-        setWallet(walletData);
-      }
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (authLoading) {
     return (
@@ -99,13 +95,13 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      
+
       <main className="flex-1 py-8">
         {/* Hero Banner */}
         <div className="relative overflow-hidden bg-hero-romantic py-12 mb-8">
           <FloatingHearts className="opacity-50" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.1),transparent_50%)]" />
-          
+
           <div className="container relative z-10">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
               <div>
@@ -125,7 +121,7 @@ export default function Dashboard() {
               </Button>
             </div>
           </div>
-          
+
           <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent" />
         </div>
 
@@ -248,7 +244,7 @@ export default function Dashboard() {
                 </Badge>
               )}
             </div>
-            
+
             {loading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[1, 2, 3].map((i) => (
@@ -271,7 +267,7 @@ export default function Dashboard() {
                     No love pages yet
                   </h3>
                   <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-                    Create your first love page and share it with someone special! 
+                    Create your first love page and share it with someone special!
                     Add photos, write love letters, and make it magical.
                   </p>
                   <Button asChild size="lg" className="btn-romantic text-white shadow-romantic group">
@@ -286,8 +282,8 @@ export default function Dashboard() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {pages.map((page, index) => (
-                  <Card 
-                    key={page.id} 
+                  <Card
+                    key={page.id}
                     className="group overflow-hidden border-0 shadow-soft hover:shadow-romantic transition-all duration-500 animate-fade-in-up"
                     style={{ animationDelay: `${index * 0.05}s` }}
                   >
@@ -295,7 +291,7 @@ export default function Dashboard() {
                     <div className="h-24 bg-gradient-to-br from-primary/20 via-primary/10 to-accent/20 relative overflow-hidden">
                       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,hsl(var(--primary)/0.3),transparent_60%)]" />
                       <div className="absolute top-3 right-3">
-                        <Badge 
+                        <Badge
                           variant={page.is_published ? "default" : "secondary"}
                           className={page.is_published ? "bg-emerald-500 hover:bg-emerald-500" : ""}
                         >
@@ -306,7 +302,7 @@ export default function Dashboard() {
                         <HeartIcon size="lg" className="text-primary/40" />
                       </div>
                     </div>
-                    
+
                     <CardHeader className="pb-3">
                       <CardTitle className="font-display text-lg group-hover:text-primary transition-colors">
                         {page.title}
@@ -322,7 +318,7 @@ export default function Dashboard() {
                         </span>
                       </CardDescription>
                     </CardHeader>
-                    
+
                     <CardContent className="pt-0">
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm" asChild className="flex-1">

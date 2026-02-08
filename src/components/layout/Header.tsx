@@ -20,22 +20,22 @@ export function Header() {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
+    const checkAdminRole = async () => {
+      try {
+        const { data } = await supabase.rpc("has_role", {
+          _user_id: user!.id,
+          _role: "admin",
+        });
+        setIsAdmin(!!data);
+      } catch {
+        setIsAdmin(false);
+      }
+    };
+
     if (user) {
       checkAdminRole();
     }
   }, [user]);
-
-  const checkAdminRole = async () => {
-    try {
-      const { data } = await supabase.rpc("has_role", {
-        _user_id: user!.id,
-        _role: "admin",
-      });
-      setIsAdmin(!!data);
-    } catch {
-      setIsAdmin(false);
-    }
-  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -54,9 +54,9 @@ export function Header() {
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-2 group">
           <div className="relative">
-            <HeartIcon 
-              size="lg" 
-              className="text-primary transition-transform group-hover:scale-110" 
+            <HeartIcon
+              size="lg"
+              className="text-primary transition-transform group-hover:scale-110"
             />
           </div>
           <span className="font-display text-xl font-bold text-foreground">
@@ -65,20 +65,20 @@ export function Header() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-6">
-          <Link 
-            to="/features" 
+          <Link
+            to="/features"
             className="text-muted-foreground hover:text-foreground transition-colors"
           >
             Features
           </Link>
-          <Link 
-            to="/themes" 
+          <Link
+            to="/themes"
             className="text-muted-foreground hover:text-foreground transition-colors"
           >
             Themes
           </Link>
-          <Link 
-            to="/pricing" 
+          <Link
+            to="/pricing"
             className="text-muted-foreground hover:text-foreground transition-colors"
           >
             Pricing
@@ -91,9 +91,9 @@ export function Header() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                   <Avatar className="h-10 w-10 border-2 border-primary/20">
-                    <AvatarImage 
-                      src={user.user_metadata?.avatar_url} 
-                      alt={user.user_metadata?.full_name || user.email} 
+                    <AvatarImage
+                      src={user.user_metadata?.avatar_url}
+                      alt={user.user_metadata?.full_name || user.email}
                     />
                     <AvatarFallback className="bg-primary/10 text-primary font-medium">
                       {getInitials(user.email, user.user_metadata?.full_name)}
@@ -155,7 +155,7 @@ export function Header() {
                   </>
                 )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={handleSignOut}
                   className="cursor-pointer text-destructive focus:text-destructive"
                 >

@@ -9,9 +9,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  User, 
-  Mail, 
+import {
+  User,
+  Mail,
   Phone,
   Save,
   ArrowLeft
@@ -36,36 +36,36 @@ export default function Profile() {
   });
 
   useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user) return;
+
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("full_name, phone, avatar_url")
+          .eq("user_id", user.id)
+          .single();
+
+        if (error && error.code !== "PGRST116") throw error;
+
+        if (data) {
+          setProfile({
+            full_name: data.full_name || "",
+            phone: data.phone || "",
+            avatar_url: data.avatar_url || "",
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (user) {
       fetchProfile();
     }
   }, [user]);
-
-  const fetchProfile = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("full_name, phone, avatar_url")
-        .eq("user_id", user.id)
-        .single();
-
-      if (error && error.code !== "PGRST116") throw error;
-
-      if (data) {
-        setProfile({
-          full_name: data.full_name || "",
-          phone: data.phone || "",
-          avatar_url: data.avatar_url || "",
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching profile:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSave = async () => {
     if (!user) return;
@@ -113,11 +113,11 @@ export default function Profile() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      
+
       <main className="flex-1 py-12">
         <div className="container max-w-2xl">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             onClick={() => navigate("/dashboard")}
             className="mb-6"
           >
@@ -193,8 +193,8 @@ export default function Profile() {
                   />
                 </div>
 
-                <Button 
-                  onClick={handleSave} 
+                <Button
+                  onClick={handleSave}
                   disabled={saving}
                   className="w-full h-12 btn-romantic text-white"
                 >

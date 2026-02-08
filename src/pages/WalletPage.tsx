@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,6 +33,12 @@ interface WalletData {
   templates_used: number;
 }
 
+interface RazorpayResponse {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+}
+
 const TEMPLATE_PLANS = [
   { id: "first-crush", name: "First Crush", templates: 5, price: 199, popular: false, description: "Perfect for your first love letter" },
   { id: "true-love", name: "True Love", templates: 10, price: 499, popular: true, description: "For those who want to express more" },
@@ -54,18 +60,13 @@ export default function WalletPage() {
   const [wallet, setWallet] = useState<WalletData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      fetchWallet();
-    }
-  }, [user]);
-
-  const fetchWallet = async () => {
+  const fetchWallet = useCallback(async () => {
+    if (!user) return;
     try {
       const { data, error } = await supabase
         .from("wallets")
         .select("balance, currency, plan_type, templates_used")
-        .eq("user_id", user!.id)
+        .eq("user_id", user.id)
         .single();
 
       if (error) throw error;
@@ -75,7 +76,13 @@ export default function WalletPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      fetchWallet();
+    }
+  }, [user, fetchWallet]);
 
   const getPlanLimits = () => {
     const planType = wallet?.plan_type || "free";
@@ -144,7 +151,7 @@ export default function WalletPage() {
         theme: {
           color: "#e11d48",
         },
-        handler: async (response: any) => {
+        handler: async (response: RazorpayResponse) => {
 
 
           try {

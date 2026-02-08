@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -22,13 +22,7 @@ export function usePremiumFeatures() {
   const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      fetchBalance();
-    }
-  }, [user]);
-
-  const fetchBalance = async () => {
+  const fetchBalance = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -45,7 +39,13 @@ export function usePremiumFeatures() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      fetchBalance();
+    }
+  }, [user, fetchBalance]);
 
   const canAfford = (featureId: string): boolean => {
     const feature = PREMIUM_FEATURES[featureId];
@@ -78,7 +78,7 @@ export function usePremiumFeatures() {
       if (error) throw error;
 
       const result = data as { success: boolean; new_balance?: number; error?: string };
-      
+
       if (!result.success) {
         console.error("Credit deduction failed:", result.error);
         return false;
@@ -91,7 +91,7 @@ export function usePremiumFeatures() {
         // Fallback: refetch balance
         await fetchBalance();
       }
-      
+
       return true;
     } catch (error) {
       console.error("Error purchasing feature:", error);

@@ -38,6 +38,14 @@ interface LovePageData {
   view_count: number;
 }
 
+const incrementViewCount = async (pageId: string) => {
+  try {
+    await supabase.rpc("increment_view_count" as never, { page_id: pageId } as never);
+  } catch {
+    // Silently fail
+  }
+};
+
 export default function LovePageViewer() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
@@ -49,91 +57,85 @@ export default function LovePageViewer() {
   const [passwordError, setPasswordError] = useState(false);
   const [verifying, setVerifying] = useState(false);
 
+
+
   useEffect(() => {
-    if (slug) {
-      fetchPage(slug);
-    }
-  }, [slug]);
+    const fetchPage = async (pageSlug: string) => {
+      setLoading(true);
+      setError(null);
 
-  const fetchPage = async (pageSlug: string) => {
-    setLoading(true);
-    setError(null);
+      try {
+        // SECURITY: Using love_pages_public view which excludes password_hash
+        // This prevents password hashes from being exposed to the client
+        const { data, error: fetchError } = await supabase
+          .from("love_pages_public")
+          .select("*")
+          .eq("slug", pageSlug)
+          .single();
 
-    try {
-      // SECURITY: Using love_pages_public view which excludes password_hash
-      // This prevents password hashes from being exposed to the client
-      const { data, error: fetchError } = await supabase
-        .from("love_pages_public")
-        .select("*")
-        .eq("slug", pageSlug)
-        .single();
-
-      if (fetchError) {
-        if (fetchError.code === "PGRST116") {
-          setError("Page not found");
-        } else {
-          setError("Failed to load page");
+        if (fetchError) {
+          if (fetchError.code === "PGRST116") {
+            setError("Page not found");
+          } else {
+            setError("Failed to load page");
+          }
+          return;
         }
-        return;
-      }
 
-      if (!data) {
-        setError("Page not found");
-        return;
-      }
+        if (!data) {
+          setError("Page not found");
+          return;
+        }
 
-      if (!data.is_published) {
-        setError("This page is not yet published");
-        return;
-      }
+        if (!data.is_published) {
+          setError("This page is not yet published");
+          return;
+        }
 
-      if (data.expires_at && new Date(data.expires_at) < new Date()) {
-        setError("This page has expired");
-        return;
-      }
+        if (data.expires_at && new Date(data.expires_at) < new Date()) {
+          setError("This page has expired");
+          return;
+        }
 
-      if (data.privacy_mode === "time-locked" && data.unlock_at) {
-        if (new Date(data.unlock_at) > new Date()) {
+        if (data.privacy_mode === "time-locked" && data.unlock_at) {
+          if (new Date(data.unlock_at) > new Date()) {
+            setPage({
+              ...data,
+              content: data.content as unknown as LovePageContent,
+            } as LovePageData);
+            setLoading(false);
+            return;
+          }
+        }
+
+        // Use is_password_protected boolean from the secure view
+        if (data.privacy_mode === "password" && data.is_password_protected) {
           setPage({
             ...data,
             content: data.content as unknown as LovePageContent,
           } as LovePageData);
-          setLoading(false);
-          return;
+          setIsUnlocked(false);
+        } else {
+          setPage({
+            ...data,
+            content: data.content as unknown as LovePageContent,
+          } as LovePageData);
+          setIsUnlocked(true);
+          if (data.id) {
+            incrementViewCount(data.id);
+          }
         }
+      } catch (err) {
+        setError("Something went wrong");
+      } finally {
+        setLoading(false);
       }
+    };
 
-      // Use is_password_protected boolean from the secure view
-      if (data.privacy_mode === "password" && data.is_password_protected) {
-        setPage({
-          ...data,
-          content: data.content as unknown as LovePageContent,
-        } as LovePageData);
-        setIsUnlocked(false);
-      } else {
-        setPage({
-          ...data,
-          content: data.content as unknown as LovePageContent,
-        } as LovePageData);
-        setIsUnlocked(true);
-        if (data.id) {
-          incrementViewCount(data.id);
-        }
-      }
-    } catch (err) {
-      setError("Something went wrong");
-    } finally {
-      setLoading(false);
+    if (slug) {
+      fetchPage(slug);
     }
-  };
-
-  const incrementViewCount = async (pageId: string) => {
-    try {
-      await supabase.rpc("increment_view_count" as never, { page_id: pageId } as never);
-    } catch {
-      // Silently fail
-    }
-  };
+  }, [slug]);
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

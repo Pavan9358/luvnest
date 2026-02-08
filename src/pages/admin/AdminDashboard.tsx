@@ -71,103 +71,103 @@ export default function AdminDashboard() {
   const [pages, setPages] = useState<PageData[]>([]);
 
   useEffect(() => {
+    const fetchAdminData = async () => {
+      setLoading(true);
+      try {
+        const [pagesRes, profilesRes, paymentsRes] = await Promise.all([
+          supabase.from("love_pages").select("id, view_count"),
+          supabase.from("profiles").select("id"),
+          supabase.from("payments").select("amount").eq("status", "completed"),
+        ]);
+
+        const totalViews = pagesRes.data?.reduce((sum, p) => sum + (p.view_count || 0), 0) || 0;
+        const totalRevenue = paymentsRes.data?.reduce((sum, p) => sum + Number(p.amount), 0) || 0;
+
+        setStats({
+          totalUsers: profilesRes.data?.length || 0,
+          totalPages: pagesRes.data?.length || 0,
+          totalRevenue,
+          totalViews,
+        });
+
+        const { data: profilesData } = await supabase
+          .from("profiles")
+          .select("user_id, full_name, created_at")
+          .order("created_at", { ascending: false })
+          .limit(50);
+
+        if (profilesData) {
+          const usersWithCounts = await Promise.all(
+            profilesData.map(async (profile) => {
+              const { count } = await supabase
+                .from("love_pages")
+                .select("id", { count: "exact", head: true })
+                .eq("user_id", profile.user_id);
+
+              return {
+                id: profile.user_id,
+                email: "user@example.com",
+                full_name: profile.full_name,
+                created_at: profile.created_at,
+                pages_count: count || 0,
+              };
+            })
+          );
+          setUsers(usersWithCounts);
+        }
+
+        const { data: pagesData } = await supabase
+          .from("love_pages")
+          .select("id, title, slug, is_published, view_count, created_at, user_id")
+          .order("created_at", { ascending: false })
+          .limit(50);
+
+        if (pagesData) {
+          setPages(
+            pagesData.map((page) => ({
+              id: page.id,
+              title: page.title,
+              slug: page.slug,
+              is_published: page.is_published || false,
+              view_count: page.view_count || 0,
+              created_at: page.created_at,
+              user_email: "—",
+            }))
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching admin data:", error);
+        toast.error("Failed to load admin data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const checkAdminRole = async () => {
+      try {
+        const { data } = await supabase.rpc("has_role", {
+          _user_id: user!.id,
+          _role: "admin",
+        });
+
+        if (!data) {
+          toast.error("Access denied: Admin privileges required");
+          navigate("/dashboard");
+          return;
+        }
+
+        setIsAdmin(true);
+        await fetchAdminData();
+      } catch (error) {
+        console.error("Error checking admin role:", error);
+        navigate("/dashboard");
+      }
+    };
+
     if (user) {
       checkAdminRole();
     }
-  }, [user]);
-
-  const checkAdminRole = async () => {
-    try {
-      const { data } = await supabase.rpc("has_role", {
-        _user_id: user!.id,
-        _role: "admin",
-      });
-
-      if (!data) {
-        toast.error("Access denied: Admin privileges required");
-        navigate("/dashboard");
-        return;
-      }
-
-      setIsAdmin(true);
-      await fetchAdminData();
-    } catch (error) {
-      console.error("Error checking admin role:", error);
-      navigate("/dashboard");
-    }
-  };
-
-  const fetchAdminData = async () => {
-    setLoading(true);
-    try {
-      const [pagesRes, profilesRes, paymentsRes] = await Promise.all([
-        supabase.from("love_pages").select("id, view_count"),
-        supabase.from("profiles").select("id"),
-        supabase.from("payments").select("amount").eq("status", "completed"),
-      ]);
-
-      const totalViews = pagesRes.data?.reduce((sum, p) => sum + (p.view_count || 0), 0) || 0;
-      const totalRevenue = paymentsRes.data?.reduce((sum, p) => sum + Number(p.amount), 0) || 0;
-
-      setStats({
-        totalUsers: profilesRes.data?.length || 0,
-        totalPages: pagesRes.data?.length || 0,
-        totalRevenue,
-        totalViews,
-      });
-
-      const { data: profilesData } = await supabase
-        .from("profiles")
-        .select("user_id, full_name, created_at")
-        .order("created_at", { ascending: false })
-        .limit(50);
-
-      if (profilesData) {
-        const usersWithCounts = await Promise.all(
-          profilesData.map(async (profile) => {
-            const { count } = await supabase
-              .from("love_pages")
-              .select("id", { count: "exact", head: true })
-              .eq("user_id", profile.user_id);
-
-            return {
-              id: profile.user_id,
-              email: "user@example.com",
-              full_name: profile.full_name,
-              created_at: profile.created_at,
-              pages_count: count || 0,
-            };
-          })
-        );
-        setUsers(usersWithCounts);
-      }
-
-      const { data: pagesData } = await supabase
-        .from("love_pages")
-        .select("id, title, slug, is_published, view_count, created_at, user_id")
-        .order("created_at", { ascending: false })
-        .limit(50);
-
-      if (pagesData) {
-        setPages(
-          pagesData.map((page) => ({
-            id: page.id,
-            title: page.title,
-            slug: page.slug,
-            is_published: page.is_published || false,
-            view_count: page.view_count || 0,
-            created_at: page.created_at,
-            user_email: "—",
-          }))
-        );
-      }
-    } catch (error) {
-      console.error("Error fetching admin data:", error);
-      toast.error("Failed to load admin data");
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [user, navigate]);
 
   if (authLoading || !isAdmin) {
     return (
@@ -196,7 +196,7 @@ export default function AdminDashboard() {
         <div className="relative overflow-hidden bg-hero-romantic py-10">
           <FloatingHearts className="opacity-30" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.1),transparent_50%)]" />
-          
+
           <div className="container relative z-10">
             <div className="flex items-center gap-4">
               <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")} className="shrink-0">
@@ -213,7 +213,7 @@ export default function AdminDashboard() {
               </div>
             </div>
           </div>
-          
+
           <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-background to-transparent" />
         </div>
 
@@ -221,8 +221,8 @@ export default function AdminDashboard() {
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
             {statCards.map((stat, index) => (
-              <Card 
-                key={stat.label} 
+              <Card
+                key={stat.label}
                 className="relative overflow-hidden border-0 shadow-soft animate-fade-in-up"
                 style={{ animationDelay: `${index * 0.05}s` }}
               >
@@ -374,7 +374,7 @@ export default function AdminDashboard() {
                             <TableRow key={page.id} className="hover:bg-muted/30">
                               <TableCell className="font-medium">{page.title}</TableCell>
                               <TableCell>
-                                <Badge 
+                                <Badge
                                   variant={page.is_published ? "default" : "secondary"}
                                   className={page.is_published ? "bg-emerald-500 hover:bg-emerald-500" : ""}
                                 >

@@ -50,7 +50,8 @@ export function AuthForm() {
           await signIn(email, password);
           toast({ title: "Welcome back! 💕", description: "Successfully signed in." });
           navigate("/dashboard");
-        } catch (loginError: any) {
+        } catch (err: unknown) {
+          const loginError = err as { message?: string };
           // If email is not confirmed, trigger OTP and switch to verification mode
           const msg = loginError?.message?.toLowerCase() || "";
           if (msg.includes("confirm") || msg.includes("verified")) {

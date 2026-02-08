@@ -1,5 +1,6 @@
 declare global {
     interface Window {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         Razorpay: any;
     }
 }
@@ -22,6 +23,12 @@ export const loadRazorpay = (): Promise<boolean> => {
     });
 };
 
+export interface RazorpayResponse {
+    razorpay_order_id: string;
+    razorpay_payment_id: string;
+    razorpay_signature: string;
+}
+
 interface RazorpayOptions {
     key: string;
     amount: number;
@@ -35,7 +42,7 @@ interface RazorpayOptions {
         email?: string;
         contact?: string;
     };
-    handler?: (response: any) => void;
+    handler?: (response: RazorpayResponse) => void;
     theme?: {
         color: string;
     };
