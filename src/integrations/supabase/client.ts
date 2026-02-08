@@ -5,6 +5,14 @@ import type { Database } from './types';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
+if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+  console.error("Missing Supabase environment variables:", {
+    url: !!SUPABASE_URL,
+    key: !!SUPABASE_PUBLISHABLE_KEY
+  });
+  throw new Error("Supabase URL or Key is missing. Check your .env file or Vercel Environment Variables.");
+}
+
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
