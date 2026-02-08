@@ -13,7 +13,7 @@ export async function signUp(email: string, password: string, fullName?: string)
     email,
     password,
     options: {
-      emailRedirectTo: window.location.origin,
+      emailRedirectTo: `${window.location.origin}/auth/callback`,
       data: {
         full_name: fullName,
       },
@@ -38,7 +38,7 @@ export async function signInWithOtp(email: string) {
   const { data, error } = await supabase.auth.signInWithOtp({
     email,
     options: {
-      emailRedirectTo: window.location.origin,
+      emailRedirectTo: `${window.location.origin}/auth/callback`,
     },
   });
 
@@ -61,7 +61,7 @@ export async function signInWithGoogle() {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: window.location.origin,
+      redirectTo: `${window.location.origin}/auth/callback`,
     },
   });
 

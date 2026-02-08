@@ -16,6 +16,8 @@ import WalletPage from "./pages/WalletPage";
 import Features from "./pages/Features";
 import Themes from "./pages/Themes";
 import Pricing from "./pages/Pricing";
+import AuthCallback from "./pages/AuthCallback";
+
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
@@ -145,6 +147,7 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route path="/auth/callback" element={<AuthCallback />} />
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />
     </Routes>
