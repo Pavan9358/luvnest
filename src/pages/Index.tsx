@@ -1,4 +1,5 @@
-import { Link, Navigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, Navigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -20,6 +21,8 @@ import {
   Zap,
   Check
 } from "lucide-react";
+
+// ... (features and testimonials arrays remain unchanged)
 
 const features = [
   {
@@ -88,13 +91,34 @@ const testimonials = [
 
 export default function Index() {
   const { user, loading } = useAuth();
+  const location = useLocation();
+  const [isProcessingHash, setIsProcessingHash] = useState(false);
 
-  if (loading) {
+  useEffect(() => {
+    // Check if we have an auth hash but user is not yet loaded or confirmed
+    if (location.hash && (location.hash.includes("access_token") || location.hash.includes("type=recovery"))) {
+      console.log("Index: Auth hash detected, waiting for session processing...");
+      setIsProcessingHash(true);
+
+      // Safety timeout in case Supabase doesn't process it
+      const timer = setTimeout(() => {
+        console.warn("Index: Auth hash processing timeout");
+        setIsProcessingHash(false);
+      }, 5000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [location.hash]);
+
+  // Combined loading state: either global auth loading OR we are processing a hash on this page
+  if (loading || isProcessingHash) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading...</p>
+          <p className="text-muted-foreground">
+            {isProcessingHash ? "Finalizing secure login..." : "Loading..."}
+          </p>
         </div>
       </div>
     );
