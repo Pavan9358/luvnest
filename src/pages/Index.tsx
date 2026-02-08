@@ -1,14 +1,15 @@
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { HeartIcon, FloatingHearts } from "@/components/ui/HeartIcon";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Heart, 
-  Lock, 
-  Share2, 
-  Palette, 
+import { useAuth } from "@/hooks/useAuth";
+import {
+  Heart,
+  Lock,
+  Share2,
+  Palette,
   Sparkles,
   MessageSquareHeart,
   Timer,
@@ -86,28 +87,45 @@ const testimonials = [
 // Stats removed per user request
 
 export default function Index() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-background relative">
       {/* Love signature watermark */}
       <div className="fixed bottom-4 right-4 z-50 text-xs text-muted-foreground/40 font-medium select-none pointer-events-none">
         made for &lt;3
       </div>
-      
+
       <Header />
-      
+
       <main className="flex-1">
         {/* Hero Section */}
         <section className="relative overflow-hidden bg-hero-romantic py-24 md:py-36">
           <FloatingHearts />
-          
+
           {/* Decorative gradients */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.15),transparent_50%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,hsl(var(--accent)/0.2),transparent_50%)]" />
-          
+
           {/* Animated circles */}
           <div className="absolute top-20 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl animate-pulse-soft" />
           <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse-soft" style={{ animationDelay: "1s" }} />
-          
+
           <div className="container relative z-10">
             <div className="max-w-4xl mx-auto text-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-8 animate-fade-in backdrop-blur-sm border border-primary/20">
@@ -115,34 +133,34 @@ export default function Index() {
                 <span className="text-sm font-medium">Create Magical Moments</span>
                 <Badge variant="secondary" className="ml-2 text-xs">New AI Features</Badge>
               </div>
-              
+
               <h1 className="text-5xl md:text-7xl font-display font-bold text-foreground mb-8 animate-fade-in-up leading-tight">
                 Express Your Love with{" "}
                 <span className="block md:inline relative">
-                  <span 
+                  <span
                     className="text-gradient-romantic"
                     style={{ fontFamily: "'Pacifico', cursive" }}
                   >
                     Beautiful Digital Pages
                   </span>
                   <svg className="absolute -bottom-1 md:-bottom-2 left-0 w-full h-3 md:h-4" viewBox="0 0 300 12" fill="none" preserveAspectRatio="none">
-                    <path 
-                      d="M2 10C50 4 150 2 298 6" 
-                      stroke="hsl(var(--primary))" 
-                      strokeWidth="3" 
-                      strokeLinecap="round" 
-                      className="animate-fade-in" 
-                      style={{ animationDelay: "0.5s" }} 
+                    <path
+                      d="M2 10C50 4 150 2 298 6"
+                      stroke="hsl(var(--primary))"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      className="animate-fade-in"
+                      style={{ animationDelay: "0.5s" }}
                     />
                   </svg>
                 </span>
               </h1>
-              
+
               <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
-                Create private, romantic digital experiences for your special someone. 
+                Create private, romantic digital experiences for your special someone.
                 Share your love story with personalized pages, AI-generated content, and stunning themes.
               </p>
-              
+
               <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
                 <Button asChild size="lg" className="btn-romantic text-white px-8 h-14 text-lg group shadow-romantic">
                   <Link to="/login?mode=signup">
@@ -158,11 +176,11 @@ export default function Index() {
                   </Link>
                 </Button>
               </div>
-              
+
               {/* Stats section removed */}
             </div>
           </div>
-          
+
           {/* Decorative gradient */}
           <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-background via-background/80 to-transparent" />
         </section>
@@ -195,7 +213,7 @@ export default function Index() {
         <section className="py-24 md:py-32 relative">
           {/* Background decoration */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(var(--secondary)/0.3),transparent_70%)]" />
-          
+
           <div className="container relative z-10">
             <div className="text-center mb-20">
               <Badge variant="outline" className="mb-4">Features</Badge>
@@ -207,17 +225,17 @@ export default function Index() {
                 From AI-powered content generation to beautiful themes, create the perfect digital love experience.
               </p>
             </div>
-            
+
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {features.map((feature, index) => (
-                <div 
+                <div
                   key={feature.title}
                   className="group relative rounded-2xl p-6 bg-card border border-border/50 animate-fade-in-up hover:shadow-romantic hover:border-primary/20 transition-all duration-500"
                   style={{ animationDelay: `${index * 0.05}s` }}
                 >
                   {/* Gradient background on hover */}
                   <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-5 rounded-2xl transition-opacity duration-500`} />
-                  
+
                   <div className={`inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br ${feature.gradient} text-white mb-5 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                     <feature.icon className="h-7 w-7" />
                   </div>
@@ -226,7 +244,7 @@ export default function Index() {
                 </div>
               ))}
             </div>
-            
+
             <div className="text-center mt-12">
               <Button asChild variant="outline" size="lg">
                 <Link to="/features">
@@ -243,7 +261,7 @@ export default function Index() {
           {/* Decorative elements */}
           <div className="absolute top-0 left-1/4 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
           <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-accent/5 rounded-full blur-3xl" />
-          
+
           <div className="container relative z-10">
             <div className="text-center mb-20">
               <Badge variant="outline" className="mb-4">How It Works</Badge>
@@ -252,29 +270,29 @@ export default function Index() {
                 <span className="text-gradient-romantic">3 Simple Steps</span>
               </h2>
             </div>
-            
+
             <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
               {[
-                { 
-                  step: "1", 
-                  title: "Choose a Theme", 
+                {
+                  step: "1",
+                  title: "Choose a Theme",
                   description: "Pick from our romantic, minimal, cinematic, or playful themes to set the perfect mood.",
                   icon: Palette
                 },
-                { 
-                  step: "2", 
-                  title: "Add Your Content", 
+                {
+                  step: "2",
+                  title: "Add Your Content",
                   description: "Upload photos, write love letters, add music, and use AI assistance to create magic.",
                   icon: Sparkles
                 },
-                { 
-                  step: "3", 
-                  title: "Share Privately", 
+                {
+                  step: "3",
+                  title: "Share Privately",
                   description: "Get a unique link to share with your special someone, with optional password protection.",
                   icon: Share2
                 },
               ].map((item, index) => (
-                <div 
+                <div
                   key={item.step}
                   className="relative text-center animate-fade-in-up group"
                   style={{ animationDelay: `${index * 0.15}s` }}
@@ -283,7 +301,7 @@ export default function Index() {
                   {index < 2 && (
                     <div className="hidden md:block absolute top-10 left-[60%] w-[80%] border-t-2 border-dashed border-primary/20" />
                   )}
-                  
+
                   <div className="relative inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-pink-400 text-white text-3xl font-display font-bold mb-6 shadow-romantic group-hover:scale-110 transition-transform duration-300">
                     {item.step}
                     <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-lg bg-card border border-border flex items-center justify-center shadow-md">
@@ -308,17 +326,17 @@ export default function Index() {
                 <span className="text-gradient-romantic">Thousands of Couples</span>
               </h2>
             </div>
-            
+
             <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
               {testimonials.map((testimonial, index) => (
-                <div 
+                <div
                   key={index}
                   className="card-romantic rounded-2xl p-8 animate-fade-in-up relative"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   {/* Quote mark */}
                   <div className="absolute top-6 right-6 text-6xl text-primary/10 font-serif">"</div>
-                  
+
                   <div className="flex gap-1 mb-4">
                     {[1, 2, 3, 4, 5].map((i) => (
                       <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
@@ -349,7 +367,7 @@ export default function Index() {
                   Choose the plan that matches how much love you want to express. All plans are valid for 1 year.
                 </p>
               </div>
-              
+
               <div className="grid md:grid-cols-3 gap-8">
                 {/* First Crush */}
                 <div className="card-romantic rounded-2xl p-8">
@@ -368,7 +386,7 @@ export default function Index() {
                     <Link to="/pricing">Choose Plan</Link>
                   </Button>
                 </div>
-                
+
                 {/* True Love */}
                 <div className="relative rounded-2xl p-8 overflow-hidden border-2 border-primary shadow-romantic">
                   <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground">
@@ -392,7 +410,7 @@ export default function Index() {
                     </Link>
                   </Button>
                 </div>
-                
+
                 {/* Forever Valentine */}
                 <div className="card-romantic rounded-2xl p-8">
                   <div className="text-center mb-6">
@@ -418,11 +436,11 @@ export default function Index() {
         {/* CTA Section */}
         <section className="py-24 md:py-32 relative overflow-hidden">
           <FloatingHearts className="opacity-30" />
-          
+
           {/* Gradient background */}
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/10" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(var(--primary)/0.1),transparent_60%)]" />
-          
+
           <div className="container relative z-10">
             <div className="max-w-3xl mx-auto text-center">
               <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 text-primary mb-8 animate-float">
