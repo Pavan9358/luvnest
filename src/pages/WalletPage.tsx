@@ -136,6 +136,9 @@ export default function WalletPage() {
         };
       }
 
+      console.log("Debug: Razorpay Key present?", !!import.meta.env.VITE_RAZORPAY_KEY_ID);
+      console.log("Debug: Order Data", orderData);
+
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID,
         amount: orderData.amount,
@@ -195,17 +198,18 @@ export default function WalletPage() {
       };
 
       if (!options.key) {
-        toast.error("Payment configuration missing. Please contact support.");
-        console.error("Razorpay Key ID is missing in environment variables.");
+        toast.error("Payment configuration missing. Please check your .env file or server restart.");
+        console.error("Razorpay Key ID is missing in environment variables. Current value:", import.meta.env.VITE_RAZORPAY_KEY_ID);
         return;
       }
 
+      console.log("Debug: Opening Razorpay with options", { ...options, key: "***" });
       openRazorpay(options);
     } catch (error) {
-      console.error("Payment error:", error);
+      console.error("Payment error full object:", error);
       // Improve error message if it's an object with description or message
       const msg = error instanceof Error ? error.message : "Payment initialization failed";
-      toast.error(msg);
+      toast.error(`Error: ${msg}`);
     } finally {
       setLoading(false);
     }
