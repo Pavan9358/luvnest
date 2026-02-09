@@ -13,7 +13,9 @@ export default function AuthCallback() {
 
                 if (error) {
                     console.error("Auth callback error:", error);
-                    navigate("/login?error=auth_callback_failed&details=" + encodeURIComponent(error.message));
+                    // Use error_description which is standard, but fallback to message
+                    const errorDetails = error.message || "Authentication failed";
+                    navigate("/login?error=auth_callback_failed&error_description=" + encodeURIComponent(errorDetails));
                     return;
                 }
 
@@ -27,12 +29,13 @@ export default function AuthCallback() {
                         navigate("/dashboard");
                     } else {
                         console.warn("No session found after callback", newError);
-                        navigate("/login?error=no_session");
+                        navigate("/login?error=no_session&error_description=Could not establish session. Please try logging in again.");
                     }
                 }
             } catch (e: any) {
                 console.error("Unexpected error in auth callback:", e);
-                navigate("/login?error=unexpected&details=" + encodeURIComponent(e.message || "Unknown error"));
+                const errorDetails = e.message || "Unknown error";
+                navigate("/login?error=unexpected&error_description=" + encodeURIComponent(errorDetails));
             }
         };
 

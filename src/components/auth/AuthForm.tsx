@@ -38,7 +38,45 @@ export function AuthForm() {
     if (mode !== "verify-pending" && mode !== "verify-otp") {
       setMode(urlMode);
     }
-  }, [searchParams, mode]);
+
+    // Check for errors in URL
+    const error = searchParams.get("error");
+    const errorDescription = searchParams.get("error_description") || searchParams.get("details"); // Fallback to details for backward compatibility
+
+    if (error) {
+      let title = "Authentication Error";
+      let description = errorDescription || "An error occurred during authentication.";
+
+      // Make error messages user-friendly
+      if (error === "access_denied") {
+        title = "Access Denied";
+        description = "You denied the access request or your email is not verified.";
+      } else if (error === "auth_callback_failed") {
+        title = "Login Failed";
+      }
+
+      // Avoid showing toast immediately on strict mode double-effect, 
+      // but simpler to just show it. 
+      // To prevent persistent toasts on refresh, clean params? 
+      // For now just show it.
+
+      // Delay slightly to ensure UI is ready
+      setTimeout(() => {
+        toast({
+          title,
+          description: decodeURIComponent(description),
+          variant: "destructive",
+        });
+
+        // Optional: Clean up URL
+        // const newParams = new URLSearchParams(searchParams);
+        // newParams.delete("error");
+        // newParams.delete("error_description");
+        // newParams.delete("details");
+        // setSearchParams(newParams);
+      }, 500);
+    }
+  }, [searchParams, mode, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
