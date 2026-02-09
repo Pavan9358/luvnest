@@ -137,13 +137,15 @@ export default function WalletPage() {
       }
 
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_SCTfw8pThbkJFl",
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
         amount: orderData.amount,
         currency: orderData.currency,
-        order_id: orderData.id,
         name: "LUVNEST",
         description: `Purchase ${plan.name} Plan`,
         image: "/icons/icon-192.png",
+        // Only include order_id if it's a real order from the backend
+        // Razorpay SDK will fail if we pass a mock/invalid order_id
+        ...(orderData.id.startsWith("order_mock_") ? {} : { order_id: orderData.id }),
         prefill: {
           name: user?.user_metadata?.full_name || "",
           email: user?.email || "",
@@ -192,10 +194,18 @@ export default function WalletPage() {
         },
       };
 
+      if (!options.key) {
+        toast.error("Payment configuration missing. Please contact support.");
+        console.error("Razorpay Key ID is missing in environment variables.");
+        return;
+      }
+
       openRazorpay(options);
     } catch (error) {
       console.error("Payment error:", error);
-      toast.error("Payment failed. Please try again.");
+      // Improve error message if it's an object with description or message
+      const msg = error instanceof Error ? error.message : "Payment initialization failed";
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
