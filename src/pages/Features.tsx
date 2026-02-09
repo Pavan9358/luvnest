@@ -3,13 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { FloatingHearts } from "@/components/ui/HeartIcon";
-import { 
-  Heart, 
-  Lock, 
-  Share2, 
-  Palette, 
-  Sparkles, 
-  Music, 
+import {
+  Heart,
+  Lock,
+  Share2,
+  Palette,
+  Sparkles,
+  Music,
   MessageSquareHeart,
   Timer,
   FileText,
@@ -21,6 +21,7 @@ import {
   ArrowRight,
   Check
 } from "lucide-react";
+import { SEO } from "@/components/SEO";
 
 const mainFeatures = [
   {
@@ -69,44 +70,49 @@ const allFeatures = [
 export default function Features() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEO
+        title="Features - LUVNEST"
+        description="Explore LUVNEST features: Love Page Builder, AI-Powered Content, Beautiful Themes, and more."
+        url="https://luvnest.app/features"
+      />
       <Header />
-      
+
       <main className="flex-1">
         {/* Hero Section */}
         <section className="relative overflow-hidden bg-hero-romantic py-20 md:py-28">
           <FloatingHearts />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.1),transparent_50%)]" />
-          
+
           <div className="container relative z-10">
             <div className="max-w-3xl mx-auto text-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-6 animate-fade-in backdrop-blur-sm border border-primary/20">
                 <Sparkles className="h-4 w-4" />
                 <span className="text-sm font-medium">Powerful Features</span>
               </div>
-              
+
               <h1 className="text-4xl md:text-6xl font-display font-bold text-foreground mb-6 animate-fade-in-up">
                 Everything You Need to{" "}
                 <span className="text-gradient-romantic">Create Magic</span>
               </h1>
-              
+
               <p className="text-lg md:text-xl text-muted-foreground mb-8 animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
                 From AI-powered content generation to beautiful themes and privacy controls,
                 we've built every feature you need to express your love.
               </p>
             </div>
           </div>
-          
+
           <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />
         </section>
 
         {/* Main Features Grid */}
         <section className="py-20 md:py-28 relative">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(var(--secondary)/0.3),transparent_70%)]" />
-          
+
           <div className="container relative z-10">
             <div className="grid md:grid-cols-2 gap-8">
               {mainFeatures.map((feature, index) => (
-                <div 
+                <div
                   key={feature.title}
                   className="group relative rounded-2xl overflow-hidden animate-fade-in-up"
                   style={{ animationDelay: `${index * 0.1}s` }}
@@ -114,15 +120,15 @@ export default function Features() {
                   {/* Gradient border effect */}
                   <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
                   <div className="absolute inset-[1px] bg-card rounded-2xl" />
-                  
+
                   <div className="relative p-8">
                     <div className={`inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br ${feature.gradient} text-white mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                       <feature.icon className="h-7 w-7" />
                     </div>
-                    
+
                     <h3 className="font-display text-2xl font-bold mb-3">{feature.title}</h3>
                     <p className="text-muted-foreground mb-6">{feature.description}</p>
-                    
+
                     <ul className="space-y-2">
                       {feature.highlights.map((highlight) => (
                         <li key={highlight} className="flex items-center gap-2 text-sm">
@@ -150,10 +156,10 @@ export default function Features() {
                 Every feature designed with love to help you create unforgettable digital experiences.
               </p>
             </div>
-            
+
             <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-6">
               {allFeatures.map((feature, index) => (
-                <div 
+                <div
                   key={feature.title}
                   className="card-romantic rounded-xl p-6 text-center animate-fade-in-up hover:scale-105 transition-transform duration-300"
                   style={{ animationDelay: `${index * 0.05}s` }}
@@ -173,7 +179,7 @@ export default function Features() {
         <section className="py-20 md:py-28 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5" />
           <FloatingHearts className="opacity-30" />
-          
+
           <div className="container relative z-10">
             <div className="max-w-2xl mx-auto text-center">
               <h2 className="text-3xl md:text-4xl font-display font-bold mb-4">

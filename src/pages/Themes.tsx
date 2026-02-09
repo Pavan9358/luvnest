@@ -15,6 +15,7 @@ import {
   ArrowRight,
   Crown
 } from "lucide-react";
+import { SEO } from "@/components/SEO";
 
 interface Theme {
   id: string;
@@ -98,6 +99,11 @@ export default function Themes() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEO
+        title="Themes - LUVNEST"
+        description="Choose from our collection of romantic themes. Romantic Rose, Minimal Love, Cinematic Night, and more."
+        url="https://luvnest.app/themes"
+      />
       <Header />
 
       <main className="flex-1">

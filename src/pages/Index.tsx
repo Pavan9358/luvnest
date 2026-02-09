@@ -22,6 +22,7 @@ import {
   Zap,
   Check
 } from "lucide-react";
+import { SEO } from "@/components/SEO";
 
 // ... (features and testimonials arrays remain unchanged)
 
@@ -168,6 +169,7 @@ export default function Index() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background relative">
+      <SEO />
       {/* Love signature watermark */}
       <div className="fixed bottom-4 right-4 z-50 text-xs text-muted-foreground/40 font-medium select-none pointer-events-none">
         made for &lt;3
