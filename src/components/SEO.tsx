@@ -15,8 +15,8 @@ interface SEOProps {
 export const SEO = ({
     title = "LUVNEST - Create Beautiful Love Pages",
     description = "Create stunning digital love pages to share with your special someone. AI-powered content, beautiful themes, and romantic animations.",
-    image = "/og-image.png",
-    url = "https://luvnest.app/",
+    image = "/favicon.ico",
+    url = "https://luvnestt.online/",
     type = "website",
     keywords = [
         "luvnest",
