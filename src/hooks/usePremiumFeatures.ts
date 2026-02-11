@@ -68,11 +68,16 @@ export function usePremiumFeatures() {
     }
 
     try {
-      // Use secure server-side function for credit deduction
-      const { data, error } = await supabase.rpc("deduct_credits", {
-        p_user_id: user.id,
-        p_amount: feature.cost,
-        p_feature_id: featureId,
+      // Use secure server-side function for credit deduction via admin-actions
+      const { data, error } = await supabase.functions.invoke('admin-actions', {
+        body: {
+          action: 'deduct-credits',
+          payload: {
+            userId: user.id,
+            amount: feature.cost,
+            featureId: featureId // Pass featureId for potential logging
+          }
+        }
       });
 
       if (error) throw error;
