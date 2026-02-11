@@ -157,36 +157,23 @@ export default function WalletPage() {
 
 
           try {
-            // Only try to verify if it's not a mock order
-            if (!orderData.id.startsWith("order_mock_")) {
-              const verifyResponse = await fetch(`${apiBaseUrl}/api/payments/verify-payment`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  razorpay_order_id: response.razorpay_order_id,
-                  razorpay_payment_id: response.razorpay_payment_id,
-                  razorpay_signature: response.razorpay_signature,
-                  planId: plan.id,
-                  userId: user?.id,
-                }),
-              });
-
-              if (!verifyResponse.ok) {
-                throw new Error("Payment verification failed");
+            // Use Supabase Edge Function for verification
+            const { data, error } = await supabase.functions.invoke('verify-payment', {
+              body: {
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                planId: plan.id,
+                userId: user?.id,
               }
+            });
 
-              toast.success(`Successfully purchased ${plan.name} plan!`);
-              fetchWallet(); // Refresh wallet data
-            } else {
-              // Mock success
-              toast.success(`Mock Purchase Successful: ${plan.name} plan!`);
-              // Provide visual feedback even without DB update
-              const mockWallet = { ...wallet, plan_type: plan.id };
-              // We can't easily update state here without full restart potentially, 
-              // but toast is enough for UI testing.
+            if (error || !data?.success) {
+              throw new Error(data?.error || "Payment verification failed");
             }
+
+            toast.success(`Successfully purchased ${plan.name} plan!`);
+            fetchWallet(); // Refresh wallet data
           } catch (error) {
             console.error("Verification error:", error);
             toast.error("Payment was successful but verification failed. Please contact support.");
