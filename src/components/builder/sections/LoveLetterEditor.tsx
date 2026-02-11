@@ -4,12 +4,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  Collapsible, 
-  CollapsibleContent, 
-  CollapsibleTrigger 
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger
 } from "@/components/ui/collapsible";
-import { Sparkles, Loader2, ChevronDown, Wand2, Quote, PenLine, Music, Bot } from "lucide-react";
+import { Sparkles, Loader2, ChevronDown, Music, Bot } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { LoveLetterSection } from "@/types/lovepage";
@@ -29,7 +29,6 @@ const TONES = [
 export function LoveLetterEditor({ section, onUpdate }: LoveLetterEditorProps) {
   const [aiPanelOpen, setAiPanelOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [assistLoading, setAssistLoading] = useState<string | null>(null);
   const [memories, setMemories] = useState("");
   const [feelings, setFeelings] = useState("");
   const [tone, setTone] = useState<"poetic" | "heartfelt" | "playful">("heartfelt");
@@ -39,7 +38,7 @@ export function LoveLetterEditor({ section, onUpdate }: LoveLetterEditorProps) {
       toast.error("Please share some memories or feelings first");
       return;
     }
-    
+
     setGenerating(true);
     try {
       const { data, error } = await supabase.functions.invoke("generate-love-letter", {
@@ -66,44 +65,6 @@ export function LoveLetterEditor({ section, onUpdate }: LoveLetterEditorProps) {
     }
   };
 
-  const handleAIAssist = async (type: "quote" | "improve" | "poem") => {
-    setAssistLoading(type);
-    try {
-      const { data, error } = await supabase.functions.invoke("ai-writing-assist", {
-        body: {
-          type,
-          text: section.data.content,
-          context: section.data.title,
-        },
-      });
-
-      if (error) throw error;
-
-      if (data?.error) {
-        toast.error(data.error);
-        return;
-      }
-
-      if (data?.result) {
-        if (type === "improve") {
-          onUpdate({ content: data.result });
-          toast.success("Letter improved! ✨");
-        } else {
-          // Append quotes or poems
-          const newContent = section.data.content 
-            ? `${section.data.content}\n\n${data.result}`
-            : data.result;
-          onUpdate({ content: newContent });
-          toast.success(type === "quote" ? "Quotes added!" : "Poem added! 💕");
-        }
-      }
-    } catch (error) {
-      console.error("Error with AI assist:", error);
-      toast.error("AI assistance failed. Please try again.");
-    } finally {
-      setAssistLoading(null);
-    }
-  };
 
   return (
     <div className="space-y-4">
@@ -195,53 +156,15 @@ export function LoveLetterEditor({ section, onUpdate }: LoveLetterEditorProps) {
         />
       </div>
 
-      {/* AI Assist Buttons */}
+      {/* AI Assistant */}
       <div className="flex flex-wrap gap-2">
-        <AIAssistButton 
+        <AIAssistButton
           sectionType="love-letter"
           currentContent={section.data.content}
           onApplySuggestion={(suggestion) => onUpdate({ content: suggestion })}
         />
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => handleAIAssist("quote")}
-          disabled={assistLoading !== null}
-        >
-          {assistLoading === "quote" ? (
-            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-          ) : (
-            <Quote className="h-3 w-3 mr-1" />
-          )}
-          Add Quotes
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => handleAIAssist("poem")}
-          disabled={assistLoading !== null}
-        >
-          {assistLoading === "poem" ? (
-            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-          ) : (
-            <PenLine className="h-3 w-3 mr-1" />
-          )}
-          Add Poem
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => handleAIAssist("improve")}
-          disabled={assistLoading !== null || !section.data.content}
-        >
-          {assistLoading === "improve" ? (
-            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-          ) : (
-            <Wand2 className="h-3 w-3 mr-1" />
-          )}
-          Improve Writing
-        </Button>
       </div>
+
 
       {/* Background Audio URL */}
       <div className="space-y-2 pt-4 border-t">
