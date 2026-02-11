@@ -3,15 +3,16 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Bot, 
-  Sparkles, 
-  Send, 
-  Loader2, 
-  Heart, 
-  Smile, 
+import {
+  Bot,
+  Sparkles,
+  Send,
+  Loader2,
+  Heart,
+  Smile,
   MessageCircleHeart,
-  X
+  X,
+  Copy
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -105,11 +106,11 @@ const SECTION_CONTEXTS: Record<SectionType, { title: string; tips: string[] }> =
   }
 };
 
-export function AIAssistantPanel({ 
-  sectionType, 
-  currentContent, 
-  onSuggestion, 
-  onClose 
+export function AIAssistantPanel({
+  sectionType,
+  currentContent,
+  onSuggestion,
+  onClose
 }: AIAssistantPanelProps) {
   const [userInput, setUserInput] = useState("");
   const [personality, setPersonality] = useState<string>("romantic");
@@ -117,9 +118,8 @@ export function AIAssistantPanel({
   const [messages, setMessages] = useState<{ role: "user" | "assistant"; content: string }[]>([
     {
       role: "assistant",
-      content: `Hey there, lovebird! 💕 I'm your AI cupid for the ${SECTION_CONTEXTS[sectionType]?.title || "Love Page"}. ${
-        SECTION_CONTEXTS[sectionType]?.tips[0] || "How can I help make your page more magical?"
-      }`
+      content: `Hey there, lovebird! 💕 I'm your AI cupid for the ${SECTION_CONTEXTS[sectionType]?.title || "Love Page"}. ${SECTION_CONTEXTS[sectionType]?.tips[0] || "How can I help make your page more magical?"
+        }`
     }
   ]);
 
@@ -151,7 +151,7 @@ export function AIAssistantPanel({
 
       if (data?.response) {
         setMessages(prev => [...prev, { role: "assistant", content: data.response }]);
-        
+
         // If there's a suggestion, offer to apply it
         if (data.suggestion) {
           setMessages(prev => [...prev, {
@@ -168,14 +168,18 @@ export function AIAssistantPanel({
     }
   };
 
-  const extractLastSuggestion = () => {
+  const copyToClipboard = () => {
     const lastAssistantMessage = [...messages].reverse().find(m => m.role === "assistant");
     if (lastAssistantMessage) {
+      // Try to extract quoted text first, otherwise copy full message
       const match = lastAssistantMessage.content.match(/"([^"]+)"/);
-      if (match) {
-        onSuggestion(match[1]);
-        toast.success("Applied! 💕");
-      }
+      const textToCopy = match ? match[1] : lastAssistantMessage.content;
+
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        toast.success("Copied to clipboard! 📋");
+      }).catch(() => {
+        toast.error("Failed to copy. Please try again.");
+      });
     }
   };
 
@@ -203,9 +207,8 @@ export function AIAssistantPanel({
           <Badge
             key={trait.id}
             variant={personality === trait.id ? "default" : "outline"}
-            className={`cursor-pointer text-xs whitespace-nowrap ${
-              personality === trait.id ? "bg-primary" : ""
-            }`}
+            className={`cursor-pointer text-xs whitespace-nowrap ${personality === trait.id ? "bg-primary" : ""
+              }`}
             onClick={() => setPersonality(trait.id)}
           >
             {trait.label}
@@ -221,11 +224,10 @@ export function AIAssistantPanel({
             className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`max-w-[85%] p-3 rounded-2xl text-sm ${
-                msg.role === "user"
-                  ? "bg-primary text-primary-foreground rounded-br-sm"
-                  : "bg-muted rounded-bl-sm"
-              }`}
+              className={`max-w-[85%] p-3 rounded-2xl text-sm ${msg.role === "user"
+                ? "bg-primary text-primary-foreground rounded-br-sm"
+                : "bg-muted rounded-bl-sm"
+                }`}
             >
               <p className="whitespace-pre-wrap">{msg.content}</p>
             </div>
@@ -278,11 +280,11 @@ export function AIAssistantPanel({
           <Button
             size="sm"
             variant="outline"
-            onClick={extractLastSuggestion}
-            disabled={loading}
+            onClick={copyToClipboard}
+            disabled={loading || messages.length === 0}
           >
-            <Sparkles className="h-4 w-4 mr-1" />
-            Use This
+            <Copy className="h-4 w-4 mr-1" />
+            Copy
           </Button>
         </div>
       </div>

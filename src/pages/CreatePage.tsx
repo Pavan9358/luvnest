@@ -37,16 +37,16 @@ import { MagazineEditor } from "@/components/builder/sections/MagazineEditor";
 import { HeartIcon } from "@/components/ui/HeartIcon";
 import { ScrollingBanner } from "@/components/ui/ScrollingBanner";
 import { TemplateLimitBlock } from "@/components/limits/TemplateLimitBlock";
-import { 
-  Save, 
-  Eye, 
-  ArrowLeft, 
+import {
+  Save,
+  Eye,
+  ArrowLeft,
   Loader2,
   CheckCircle,
   ExternalLink
 } from "lucide-react";
 import { toast } from "sonner";
-import type { 
+import type {
   LovePageSection,
   HeroSection,
   LoveLetterSection,
@@ -124,13 +124,19 @@ export default function CreatePage() {
         // Creating new page - check create limits
         const result = await checkCanCreate();
         if (!result.allowed) {
+          // Check if user is on free plan - redirect to upgrade
+          if (planLimits?.planType === 'free') {
+            toast.error("Upgrade to create your first love page! 💝");
+            navigate("/wallet");
+            return;
+          }
           setLimitBlocked("create");
         }
       }
     };
 
     checkLimits();
-  }, [user, id, limitsLoading, checkCanCreate, checkCanEdit]);
+  }, [user, id, limitsLoading, checkCanCreate, checkCanEdit, planLimits, navigate]);
 
   // Initialize new page with hero section
   useEffect(() => {
