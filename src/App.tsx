@@ -50,7 +50,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 // Redirect authenticated users away from auth pages
-function AuthRoute({ children }: { children: React.ReactNode }) {
+function AuthRoute({ children, redirectTo = "/dashboard" }: { children: React.ReactNode; redirectTo?: string }) {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -65,7 +65,7 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (user) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={redirectTo} replace />;
   }
 
   return <>{children}</>;
@@ -84,7 +84,15 @@ function AppRoutes() {
         path="/login"
         element={
           <AuthRoute>
-            <Login />
+            <Login isAdmin={false} />
+          </AuthRoute>
+        }
+      />
+      <Route
+        path="/admin/login"
+        element={
+          <AuthRoute redirectTo="/admin">
+            <Login isAdmin={true} />
           </AuthRoute>
         }
       />

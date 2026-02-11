@@ -14,6 +14,11 @@ if ("serviceWorker" in navigator) {
 
 console.log("App starting...");
 console.log("Supabase URL:", import.meta.env.VITE_SUPABASE_URL);
+console.log("ENV DEBUG:", {
+  MODE: import.meta.env.MODE,
+  RAZORPAY_KEY: import.meta.env.VITE_RAZORPAY_KEY_ID ? "Present" : "Missing",
+  FULL_ENV: import.meta.env
+});
 
 try {
   const rootElement = document.getElementById("root");

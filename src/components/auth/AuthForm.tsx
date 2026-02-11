@@ -17,10 +17,22 @@ import {
 
 type AuthMode = "login" | "signup" | "verify-pending" | "verify-otp";
 
-export function AuthForm() {
+interface AuthFormProps {
+  isAdmin?: boolean;
+}
+
+export function AuthForm({ isAdmin = false }: AuthFormProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialMode = searchParams.get("mode") === "signup" ? "signup" : "login";
   const [mode, setMode] = useState<AuthMode>(initialMode);
+
+  // If not admin, force login mode (since signup is also manual)
+  useEffect(() => {
+    if (!isAdmin && mode === "signup") {
+      setMode("login");
+    }
+  }, [isAdmin, mode]);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -87,7 +99,7 @@ export function AuthForm() {
         try {
           await signIn(email, password);
           toast({ title: "Welcome back! 💕", description: "Successfully signed in." });
-          navigate("/dashboard");
+          navigate(isAdmin ? "/admin" : "/dashboard");
         } catch (err: unknown) {
           const loginError = err as { message?: string };
           // If email is not confirmed, trigger OTP and switch to verification mode
@@ -296,86 +308,92 @@ export function AuthForm() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        {mode === "signup" && (
-          <div className="space-y-2">
-            <Label htmlFor="fullName" className="text-sm font-medium">Full Name</Label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="fullName"
-                type="text"
-                placeholder="Your name"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className="pl-10 h-12 bg-muted/50 border-border/50 focus:border-primary"
-                required
-              />
+        {isAdmin && (
+          <>
+            {mode === "signup" && (
+              <div className="space-y-2">
+                <Label htmlFor="fullName" className="text-sm font-medium">Full Name</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="fullName"
+                    type="text"
+                    placeholder="Your name"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="pl-10 h-12 bg-muted/50 border-border/50 focus:border-primary"
+                    required
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="pl-10 h-12 bg-muted/50 border-border/50 focus:border-primary"
+                  required
+                />
+              </div>
             </div>
-          </div>
-        )}
 
-        <div className="space-y-2">
-          <Label htmlFor="email" className="text-sm font-medium">Email</Label>
-          <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              id="email"
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="pl-10 h-12 bg-muted/50 border-border/50 focus:border-primary"
-              required
-            />
-          </div>
-        </div>
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pl-10 pr-10 h-12 bg-muted/50 border-border/50 focus:border-primary"
+                  required
+                  minLength={6}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="password" className="text-sm font-medium">Password</Label>
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="pl-10 pr-10 h-12 bg-muted/50 border-border/50 focus:border-primary"
-              required
-              minLength={6}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            <Button
+              type="submit"
+              className="w-full h-12 btn-romantic text-white shadow-romantic group"
+              disabled={loading}
             >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
-        </div>
-
-        <Button
-          type="submit"
-          className="w-full h-12 btn-romantic text-white shadow-romantic group"
-          disabled={loading}
-        >
-          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {mode === "login" && "Sign In"}
-          {mode === "signup" && "Create Account"}
-          {!loading && <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />}
-        </Button>
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {mode === "login" && "Sign In"}
+              {mode === "signup" && "Create Account"}
+              {!loading && <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />}
+            </Button>
+          </>
+        )}
       </form>
 
-      <div className="relative my-8">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-border/50" />
+      {isAdmin && (
+        <div className="relative my-8">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-border/50" />
+          </div>
+          <div className="relative flex justify-center">
+            <span className="bg-card px-4 text-xs uppercase text-muted-foreground tracking-wider">
+              Or continue with
+            </span>
+          </div>
         </div>
-        <div className="relative flex justify-center">
-          <span className="bg-card px-4 text-xs uppercase text-muted-foreground tracking-wider">
-            Or continue with
-          </span>
-        </div>
-      </div>
+      )}
 
       <Button
         type="button"
@@ -406,29 +424,33 @@ export function AuthForm() {
       </Button>
 
       <div className="mt-8 text-center text-sm">
-        {mode === "login" && (
-          <p className="text-muted-foreground">
-            Don't have an account?{" "}
-            <button
-              type="button"
-              onClick={() => setSearchParams({ mode: "signup" })}
-              className="text-primary hover:underline font-semibold"
-            >
-              Sign up free
-            </button>
-          </p>
-        )}
-        {mode === "signup" && (
-          <p className="text-muted-foreground">
-            Already have an account?{" "}
-            <button
-              type="button"
-              onClick={() => setSearchParams({ mode: "login" })}
-              className="text-primary hover:underline font-semibold"
-            >
-              Sign in
-            </button>
-          </p>
+        {isAdmin && (
+          <>
+            {mode === "login" && (
+              <p className="text-muted-foreground">
+                Don't have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => setSearchParams({ mode: "signup" })}
+                  className="text-primary hover:underline font-semibold"
+                >
+                  Sign up free
+                </button>
+              </p>
+            )}
+            {mode === "signup" && (
+              <p className="text-muted-foreground">
+                Already have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => setSearchParams({ mode: "login" })}
+                  className="text-primary hover:underline font-semibold"
+                >
+                  Sign in
+                </button>
+              </p>
+            )}
+          </>
         )}
       </div>
 
